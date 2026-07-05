@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>WineNot — Discover wine your way</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,ital,wght@9..144,0,400;9..144,0,500;9..144,0,600;9..144,0,900;9..144,1,500;9..144,1,600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --must:#6b1f3a; --must-d:#561730; --ink:#2a1820; --rose:#e8a0a8; --rose-soft:#f7e3e4;
+    --skin:#fff8f3; --pulp:#fdeede; --gold:#d9a441; --leaf:#5a7d57; --line:rgba(42,24,32,.12);
+    --shadow:0 18px 50px -20px rgba(107,31,58,.45);
+    --shadow-sm:0 10px 30px -18px rgba(42,24,32,.4);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html{scroll-behavior:smooth}
+  body{font-family:'Outfit',system-ui,sans-serif;background:#efe6df;color:var(--ink);-webkit-font-smoothing:antialiased;line-height:1.5}
+  .wrap{max-width:430px;margin:0 auto;min-height:100vh;background:var(--skin);position:relative;box-shadow:0 0 80px -30px rgba(42,24,32,.35);overflow:hidden}
+
+  .top{display:flex;align-items:center;justify-content:space-between;padding:18px 22px 12px;position:sticky;top:0;z-index:30;background:linear-gradient(var(--skin) 78%,rgba(255,248,243,0));backdrop-filter:blur(6px)}
+  .logo{font-family:'Fraunces',serif;font-weight:900;font-size:24px;letter-spacing:-.5px;color:var(--must)}
+  .logo span{color:var(--gold)}
+  .logo i{font-style:normal;font-size:13px;font-family:'Outfit';font-weight:500;color:var(--ink);opacity:.5;display:block;margin-top:-4px;letter-spacing:2px;text-transform:uppercase}
+  .avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--rose),var(--gold));display:grid;place-items:center;font-weight:700;color:#fff;font-size:15px;box-shadow:var(--shadow-sm)}
+
+  .screen{display:none;padding:0 22px 118px}
+  .screen.active{display:block;animation:fade .45s cubic-bezier(.2,.8,.2,1)}
+  @keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  @keyframes pop{0%{transform:scale(.92);opacity:0}60%{transform:scale(1.02)}100%{transform:scale(1);opacity:1}}
+
+  .hero{margin:6px 0 26px}
+  .hero h1{font-family:'Fraunces',serif;font-weight:900;font-size:40px;line-height:.98;letter-spacing:-1px;margin-bottom:12px}
+  .hero h1 em{font-style:italic;color:var(--must)}
+  .hero p{font-size:16px;opacity:.72;max-width:34ch}
+
+  .quiz{background:var(--ink);color:var(--skin);border-radius:26px;padding:26px 24px;margin-bottom:28px;position:relative;overflow:hidden;box-shadow:var(--shadow)}
+  .quiz::after{content:"";position:absolute;right:-40px;top:-40px;width:170px;height:170px;background:radial-gradient(circle,var(--must),transparent 70%);opacity:.65}
+  .quiz .k{font-size:12px;letter-spacing:2.5px;text-transform:uppercase;opacity:.55;margin-bottom:10px;position:relative}
+  .quiz h3{font-family:'Fraunces',serif;font-size:23px;font-weight:600;margin-bottom:18px;position:relative}
+  .opts{display:flex;flex-direction:column;gap:10px;position:relative}
+  .opt{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:14px;padding:13px 16px;cursor:pointer;font-size:15px;font-weight:500;display:flex;align-items:center;gap:12px;transition:transform .15s,background .18s,border-color .18s}
+  .opt:hover{background:rgba(255,255,255,.15)}
+  .opt:active{transform:scale(.98)}
+  .opt.sel{background:var(--gold);color:var(--ink);border-color:var(--gold);font-weight:600}
+  .opt .e{font-size:20px}
+  .result{display:none;margin-top:18px;padding-top:18px;border-top:1px solid rgba(255,255,255,.15);position:relative}
+  .result.show{display:block;animation:pop .5s cubic-bezier(.2,.8,.2,1)}
+  .result .match{font-family:'Fraunces',serif;font-size:21px;font-weight:600;color:var(--gold);margin-bottom:6px}
+  .result p{font-size:14px;opacity:.82;line-height:1.55;margin-bottom:14px}
+  .result .cta{display:inline-block;background:var(--skin);color:var(--must);font-weight:700;font-size:13px;padding:9px 16px;border-radius:20px;border:none;cursor:pointer}
+  .result .cta:active{transform:scale(.97)}
+
+  .sec-h{display:flex;align-items:baseline;justify-content:space-between;margin:6px 2px 14px}
+  .sec-h h2{font-family:'Fraunces',serif;font-size:22px;font-weight:600}
+  .sec-h a{font-size:13px;color:var(--must);font-weight:600;text-decoration:none;cursor:pointer}
+
+  .cards{display:flex;gap:14px;overflow-x:auto;padding:0 22px 8px;margin:0 -22px;scroll-snap-type:x mandatory;scrollbar-width:none}
+  .cards::-webkit-scrollbar{display:none}
+  .vcard{min-width:230px;scroll-snap-align:start;background:#fff;border-radius:22px;overflow:hidden;box-shadow:var(--shadow-sm);border:1px solid var(--line)}
+  .vcard .ph{height:120px;position:relative;display:flex;align-items:flex-end;padding:12px}
+  .vcard .tag{background:rgba(255,255,255,.94);color:var(--must);font-size:11px;font-weight:700;padding:4px 9px;border-radius:20px;letter-spacing:.3px}
+  .vcard .b{padding:14px 16px 16px}
+  .vcard h4{font-family:'Fraunces',serif;font-size:18px;font-weight:600;margin-bottom:3px}
+  .vcard .loc{font-size:13px;opacity:.6;margin-bottom:10px}
+  .vcard .why{font-size:13px;background:var(--pulp);color:var(--must);padding:8px 11px;border-radius:11px;line-height:1.4;font-weight:500}
+
+  .myth{background:var(--rose-soft);border-radius:22px;padding:22px;margin-top:26px;border:1px solid var(--line)}
+  .myth .k{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--must);font-weight:700;margin-bottom:8px}
+  .myth p{font-size:15px;line-height:1.6}
+  .myth p b{color:var(--must)}
+
+  .filter{display:flex;gap:8px;overflow-x:auto;margin:0 -22px 20px;padding:4px 22px;scrollbar-width:none}
+  .filter::-webkit-scrollbar{display:none}
+  .chip{white-space:nowrap;background:#fff;border:1px solid var(--line);border-radius:20px;padding:8px 15px;font-size:13px;font-weight:600;cursor:pointer;transition:transform .12s,background .15s;user-select:none}
+  .chip:active{transform:scale(.96)}
+  .chip.on{background:var(--must);color:#fff;border-color:var(--must)}
+
+  .exp{background:#fff;border-radius:24px;overflow:hidden;margin-bottom:18px;border:1px solid var(--line);box-shadow:var(--shadow-sm);animation:pop .4s cubic-bezier(.2,.8,.2,1)}
+  .exp.hide{display:none}
+  .exp .ph{height:150px;position:relative;display:flex;flex-direction:column;justify-content:space-between;padding:14px}
+  .exp .lvl{align-self:flex-start;background:var(--leaf);color:#fff;font-size:11px;font-weight:700;padding:5px 11px;border-radius:20px;letter-spacing:.3px}
+  .exp .pr{align-self:flex-end;background:rgba(255,255,255,.95);color:var(--ink);font-weight:700;font-size:14px;padding:6px 12px;border-radius:20px}
+  .exp .b{padding:16px 18px 18px}
+  .exp h4{font-family:'Fraunces',serif;font-size:20px;font-weight:600;margin-bottom:4px}
+  .exp .meta{font-size:13px;opacity:.6;margin-bottom:12px;display:flex;gap:14px;flex-wrap:wrap}
+  .exp .desc{font-size:14px;line-height:1.55;opacity:.85;margin-bottom:16px}
+  .book{width:100%;background:var(--must);color:#fff;border:none;border-radius:14px;padding:14px;font-family:'Outfit';font-size:15px;font-weight:600;cursor:pointer;transition:background .15s,transform .1s}
+  .book:hover{background:var(--must-d)}
+  .book:active{transform:scale(.99)}
+  .empty{text-align:center;padding:40px 20px;opacity:.5;font-size:15px}
+
+  .sheet-bg{position:fixed;inset:0;background:rgba(42,24,32,.5);backdrop-filter:blur(3px);z-index:60;display:none;align-items:flex-end;justify-content:center}
+  .sheet-bg.show{display:flex;animation:fade .25s}
+  .sheet{background:var(--skin);width:100%;max-width:430px;border-radius:28px 28px 0 0;padding:26px 24px 34px;animation:rise .32s cubic-bezier(.2,.8,.2,1)}
+  @keyframes rise{from{transform:translateY(100%)}to{transform:none}}
+  .sheet .grab{width:40px;height:4px;background:var(--line);border-radius:4px;margin:0 auto 20px}
+  .sheet h3{font-family:'Fraunces',serif;font-size:24px;font-weight:600;margin-bottom:4px}
+  .sheet .sub{opacity:.65;font-size:14px;margin-bottom:22px}
+  .flabel{font-size:13px;font-weight:600;margin-bottom:8px;opacity:.7}
+  .row{display:flex;gap:10px;margin-bottom:14px}
+  .pick{flex:1;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center;cursor:pointer;font-weight:600;font-size:14px;transition:transform .1s,border-color .15s,background .15s}
+  .pick:active{transform:scale(.97)}
+  .pick.on{border-color:var(--must);background:var(--pulp);color:var(--must)}
+  .pick small{display:block;opacity:.55;font-weight:400;font-size:12px;margin-top:2px}
+  .total{display:flex;justify-content:space-between;align-items:center;margin:18px 0 10px;font-size:15px}
+  .total b{font-family:'Fraunces',serif;font-size:22px;color:var(--must)}
+  .confirm{width:100%;background:var(--gold);color:var(--ink);border:none;border-radius:14px;padding:15px;font-family:'Outfit';font-weight:700;font-size:15px;cursor:pointer}
+  .confirm:active{transform:scale(.99)}
+  .done{text-align:center;padding:14px 0 4px;display:none}
+  .done.show{display:block;animation:pop .5s cubic-bezier(.2,.8,.2,1)}
+  .done .big{font-size:54px;margin-bottom:10px}
+  .done h3{margin-bottom:6px}
+  .done p{opacity:.7;font-size:14px;margin-bottom:20px}
+
+  .passport{background:linear-gradient(140deg,var(--must),var(--ink));color:var(--skin);border-radius:26px;padding:24px;margin-bottom:24px;position:relative;overflow:hidden;box-shadow:var(--shadow)}
+  .passport::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 82% 18%,rgba(217,164,65,.32),transparent 52%)}
+  .passport .k{font-size:12px;letter-spacing:2.5px;text-transform:uppercase;opacity:.6;margin-bottom:6px;position:relative}
+  .passport h3{font-family:'Fraunces',serif;font-size:26px;font-weight:600;margin-bottom:18px;position:relative}
+  .stats{display:flex;gap:24px;position:relative}
+  .stat .n{font-family:'Fraunces',serif;font-size:30px;font-weight:600;color:var(--gold)}
+  .stat .l{font-size:12px;opacity:.7;letter-spacing:.5px}
+  .prog{margin-top:20px;position:relative}
+  .prog .pl{display:flex;justify-content:space-between;font-size:12px;opacity:.75;margin-bottom:7px}
+  .bar{height:8px;background:rgba(255,255,255,.15);border-radius:8px;overflow:hidden}
+  .bar span{display:block;height:100%;width:0;background:var(--gold);border-radius:8px;transition:width 1s cubic-bezier(.2,.8,.2,1)}
+  .badges{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:20px;position:relative}
+  .badge{aspect-ratio:1;border-radius:50%;display:grid;place-items:center;font-size:22px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18)}
+  .badge.locked{opacity:.28;filter:grayscale(1)}
+
+  .next{background:#fff;border-radius:20px;padding:18px;border:1px solid var(--line);display:flex;gap:14px;align-items:center;margin-bottom:14px;box-shadow:var(--shadow-sm)}
+  .next .ic{width:50px;height:50px;border-radius:14px;flex-shrink:0}
+  .next .t{flex:1}
+  .next h4{font-family:'Fraunces',serif;font-size:17px;font-weight:600}
+  .next p{font-size:13px;opacity:.65}
+  .next .go{background:var(--pulp);color:var(--must);border:none;border-radius:50%;width:36px;height:36px;font-size:18px;cursor:pointer;flex-shrink:0}
+  .next .go:active{transform:scale(.9)}
+
+  .nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:rgba(255,248,243,.94);backdrop-filter:blur(16px);border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:10px 0 calc(12px + env(safe-area-inset-bottom));z-index:40}
+  .nav button{background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;font-family:'Outfit';font-size:11px;font-weight:600;color:var(--ink);opacity:.4;transition:opacity .18s,color .18s;padding:4px 16px}
+  .nav button .ni{font-size:21px}
+  .nav button.on{opacity:1;color:var(--must)}
+
+  .toast{position:fixed;bottom:96px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--skin);padding:12px 20px;border-radius:30px;font-size:14px;font-weight:500;z-index:70;opacity:0;pointer-events:none;transition:.35s;white-space:nowrap;box-shadow:var(--shadow)}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .demo-note{text-align:center;font-size:11px;opacity:.4;padding:14px 0 2px;letter-spacing:.5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="logo">Wine<span>Not</span><i>discover wine your way</i></div>
+    <div class="avatar">Δ</div>
+  </div>
+
+  <!-- DISCOVER -->
+  <section class="screen active" id="discover">
+    <div class="hero">
+      <h1>Wine is <em>easier</em><br>than they made<br>you think.</h1>
+      <p>No snobbery, no weird words. Just find what you'll actually like — and where to go taste it.</p>
+    </div>
+    <div class="quiz">
+      <div class="k">30-second taste match</div>
+      <h3 id="qtext">Pick a drink you already love 🍹</h3>
+      <div class="opts" id="qopts">
+        <div class="opt" data-r="fresh"><span class="e">🍋</span> Something fresh &amp; citrusy</div>
+        <div class="opt" data-r="bold"><span class="e">☕</span> Bold &amp; intense, like espresso</div>
+        <div class="opt" data-r="sweet"><span class="e">🧃</span> Fruity &amp; a little sweet</div>
+        <div class="opt" data-r="fizz"><span class="e">🥤</span> Fizzy &amp; fun</div>
+      </div>
+      <div class="result" id="qres">
+        <div class="match" id="rmatch"></div>
+        <p id="rtext"></p>
+        <button class="cta" onclick="switchTab('experience')">Find an experience →</button>
+      </div>
+    </div>
+    <div class="sec-h"><h2>Made for your taste</h2><a onclick="switchTab('experience')">see all →</a></div>
+    <div class="cards">
+      <div class="vcard">
+        <div class="ph" style="background:linear-gradient(135deg,#6b1f3a,#e8a0a8)"><span class="tag">Αγιωργίτικο · Νεμέα</span></div>
+        <div class="b"><h4>Οινοποιείο Λιέπουρη</h4><div class="loc">Νεμέα · 1h από Αθήνα</div>
+          <div class="why">✦ Στρογγυλό &amp; φιλικό — ιδανικό πρώτο κόκκινο</div></div>
+      </div>
+      <div class="vcard">
+        <div class="ph" style="background:linear-gradient(135deg,#2a1820,#6b1f3a)"><span class="tag">Μοσχοφίλερο · Πελοπόννησος</span></div>
+        <div class="b"><h4>Οινοποιείο Νικολού</h4><div class="loc">Πελοπόννησος · 1.5h από Αθήνα</div>
+          <div class="why">✦ Αρωματικό &amp; ανάλαφρο — μηδέν τρόμος</div></div>
+      </div>
+      <div class="vcard">
+        <div class="ph" style="background:linear-gradient(135deg,#d9a441,#e8a0a8)"><span class="tag">Coming soon</span></div>
+        <div class="b"><h4>+ η περιοχή σου</h4><div class="loc">Προσθέτουμε οινοποιεία κάθε μήνα</div>
+          <div class="why">✦ Πες μας πού θες να πάμε επόμενα</div></div>
+      </div>
+    </div>
+    <div class="myth">
+      <div class="k">Myth, busted</div>
+      <p>"Ακριβό = καλύτερο." <b>Όχι.</b> Μερικά από τα καλύτερα ελληνικά κρασιά κοστίζουν λιγότερο από δύο cocktails. Η τιμή πληρώνει κυρίως τη φήμη, όχι τη γεύση. Ξεκίνα φθηνά, εμπιστέψου τον ουρανίσκο σου.</p>
+    </div>
+  </section>
+
+  <!-- EXPERIENCE -->
+  <section class="screen" id="experience">
+    <div class="hero" style="margin-bottom:18px">
+      <h1>Not a lecture.<br>An <em>experience.</em></h1>
+      <p>Πραγματικά πράγματα να κάνεις σε ένα οινοποιείο — για όσους δεν "ξέρουν από κρασί" (ακόμα).</p>
+    </div>
+    <div class="filter" id="filter">
+      <div class="chip on" data-f="all">All</div>
+      <div class="chip" data-f="beginner">Beginner 🌱</div>
+      <div class="chip" data-f="sunset">Sunset 🌅</div>
+      <div class="chip" data-f="food">Food 🫒</div>
+      <div class="chip" data-f="hands">Hands-on 🍇</div>
+    </div>
+    <div id="explist">
+      <div class="exp" data-tags="beginner hands">
+        <div class="ph" style="background:linear-gradient(135deg,#d9a441,#6b1f3a)"><span class="lvl">🌱 Total beginner</span><span class="pr">€28 / άτομο</span></div>
+        <div class="b">
+          <h4>Φτιάξε το δικό σου μπουκάλι</h4>
+          <div class="meta"><span>⏱ 90'</span><span>📍 Λιέπουρη · Νεμέα</span><span>👥 μικρό group</span></div>
+          <div class="desc">Ανακάτεψε τρεις ελληνικές ποικιλίες σε ένα μπουκάλι που είναι δικό σου — με τ' όνομά σου στην ετικέτα. Μαθαίνεις γιατί κάθε σταφύλι έχει τη γεύση του, χωρίς δυσνόητα.</div>
+          <button class="book" onclick="openSheet('Φτιάξε το δικό σου μπουκάλι','Λιέπουρη · Νεμέα',28)">Book this →</button>
+        </div>
+      </div>
+      <div class="exp" data-tags="sunset food beginner">
+        <div class="ph" style="background:linear-gradient(135deg,#e8a0a8,#6b1f3a)"><span class="lvl">🌅 Easy</span><span class="pr">€35 / άτομο</span></div>
+        <div class="b">
+          <h4>Ηλιοβασίλεμα, αμπέλια &amp; τοπικά πιάτα</h4>
+          <div class="meta"><span>⏱ 2h</span><span>📍 Νικολού · Πελοπόννησος</span></div>
+          <div class="desc">Τρία κρασιά, τρία τοπικά πιατάκια, ένα ηλιοβασίλεμα στα αμπέλια. Σου λέμε την ιστορία πίσω από κάθε κρασί όσο τρως — η βραδιά που θα ποστάρεις.</div>
+          <button class="book" onclick="openSheet('Ηλιοβασίλεμα στα αμπέλια','Νικολού · Πελοπόννησος',35)">Book this →</button>
+        </div>
+      </div>
+      <div class="exp" data-tags="hands food">
+        <div class="ph" style="background:linear-gradient(135deg,#5a7d57,#2a1820)"><span class="lvl">🍇 Hands-on</span><span class="pr">€20 / άτομο</span></div>
+        <div class="b">
+          <h4>Πρωινό τρύγου (σεζόν)</h4>
+          <div class="meta"><span>⏱ 3h</span><span>📍 Λιέπουρη · Νεμέα</span></div>
+          <div class="desc">Μάζεψε σταφύλια στην ανατολή με την ομάδα, μετά δοκίμασε το κρασί που έκαναν τα ίδια αμπέλια πέρσι. Από το αμπέλι στο ποτήρι, κυριολεκτικά.</div>
+          <button class="book" onclick="openSheet('Πρωινό τρύγου','Λιέπουρη · Νεμέα',20)">Book this →</button>
+        </div>
+      </div>
+    </div>
+    <div class="empty" id="empty" style="display:none">Καμία εμπειρία σε αυτό το φίλτρο — δοκίμασε άλλο 🍷</div>
+  </section>
+
+  <!-- BELONG -->
+  <section class="screen" id="belong">
+    <div class="hero" style="margin-bottom:18px">
+      <h1>Your wine<br><em>passport.</em></h1>
+      <p>Κάθε επίσκεψη ξεκλειδώνει κάτι. Μάζεψε περιοχές, όχι μόνο αναμνήσεις.</p>
+    </div>
+    <div class="passport">
+      <div class="k">WineNot Passport</div>
+      <h3>Το ταξίδι της Δήμητρας</h3>
+      <div class="stats">
+        <div class="stat"><div class="n" id="stW">2</div><div class="l">οινοποιεία</div></div>
+        <div class="stat"><div class="n">2</div><div class="l">περιοχές</div></div>
+        <div class="stat"><div class="n">7</div><div class="l">ποικιλίες</div></div>
+      </div>
+      <div class="prog">
+        <div class="pl"><span>Επόμενο badge: Explorer 🏔</span><span id="pgt">2 / 3 περιοχές</span></div>
+        <div class="bar"><span id="pgbar"></span></div>
+      </div>
+      <div class="badges">
+        <div class="badge">🍇</div><div class="badge">🌅</div><div class="badge">🍋</div><div class="badge">🫒</div>
+        <div class="badge locked">🌋</div><div class="badge locked">🏔</div><div class="badge locked">🍷</div><div class="badge locked">🎖</div>
+      </div>
+    </div>
+    <div class="sec-h"><h2>Επειδή σου άρεσε το Αγιωργίτικο</h2></div>
+    <div class="next">
+      <div class="ic" style="background:linear-gradient(135deg,#d9a441,#e8a0a8)"></div>
+      <div class="t"><h4>Δοκίμασε Μαλαγουζιά</h4><p>Ίδιο φρέσκο vibe, πιο απαλό → οινοποιεία κοντά σου</p></div>
+      <button class="go" onclick="switchTab('discover')">→</button>
+    </div>
+    <div class="next">
+      <div class="ic" style="background:linear-gradient(135deg,#5a7d57,#2a1820)"></div>
+      <div class="t"><h4>1 επίσκεψη από το badge "Explorer"</h4><p>Επισκέψου άλλη μια περιοχή για να το ξεκλειδώσεις</p></div>
+      <button class="go" onclick="switchTab('experience')">→</button>
+    </div>
+    <div class="myth" style="margin-top:8px">
+      <div class="k">Coming across Europe</div>
+      <p>Το passport σου δεν σταματά στην Ελλάδα. <b>Ίδιο app, κάθε οινοπαραγωγική περιοχή</b> — Douro, Tuscany, Rioja, Mosel. Ένα ταξίδι, όλα τα αμπέλια της Ευρώπης.</p>
+    </div>
+  </section>
+
+  <div class="demo-note">— interactive concept demo · WineNot · winery partners in discussion: Λιέπουρη, Νικολού —</div>
+
+  <div class="sheet-bg" id="sheetbg" onclick="if(event.target===this)closeSheet()">
+    <div class="sheet">
+      <div class="grab"></div>
+      <div id="sheetForm">
+        <h3 id="shTitle">Book experience</h3>
+        <div class="sub" id="shSub"></div>
+        <div class="flabel">Διάλεξε μέρα</div>
+        <div class="row" data-group="day">
+          <div class="pick on" onclick="pick(this)">Σάβ<small>14 Ιουν</small></div>
+          <div class="pick" onclick="pick(this)">Κυρ<small>15 Ιουν</small></div>
+          <div class="pick" onclick="pick(this)">Παρ<small>20 Ιουν</small></div>
+        </div>
+        <div class="flabel">Πόσα άτομα;</div>
+        <div class="row" data-group="ppl">
+          <div class="pick on" data-n="2" onclick="pick(this);recalc()">2</div>
+          <div class="pick" data-n="4" onclick="pick(this);recalc()">4</div>
+          <div class="pick" data-n="6" onclick="pick(this);recalc()">6+</div>
+        </div>
+        <div class="total"><span>Σύνολο</span><b id="shTotal">€56</b></div>
+        <button class="confirm" onclick="confirmBooking()">Επιβεβαίωση κράτησης</button>
+      </div>
+      <div class="done" id="shDone">
+        <div class="big">🍷</div>
+        <h3>Κλείστηκε!</h3>
+        <p id="doneTxt"></p>
+        <button class="confirm" onclick="closeSheet()">Στο passport →</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <nav class="nav">
+    <button class="on" data-t="discover" onclick="switchTab('discover')"><span class="ni">✦</span>Discover</button>
+    <button data-t="experience" onclick="switchTab('experience')"><span class="ni">◷</span>Experience</button>
+    <button data-t="belong" onclick="switchTab('belong')"><span class="ni">⬡</span>Belong</button>
+  </nav>
+</div>
+<script>
+  const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
+  let price=28, ppl=2, stamps=2;
+
+  function switchTab(id){
+    $$('.screen').forEach(s=>s.classList.toggle('active',s.id===id));
+    $$('.nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===id));
+    window.scrollTo(0,0);
+    if(id==='belong') setTimeout(updateProg,150);
+  }
+
+  // quiz
+  const matches={
+    fresh:{m:"Είσαι τύπος Ασύρτικου 🍋",t:"Φρέσκο, λεμονάτο, μεταλλικό — σαν μια σταγόνα λεμόνι πάνω από το Αιγαίο. Το σήμα κατατεθέν λευκό της Ελλάδας."},
+    bold:{m:"Το Ξινόμαυρο σε ταιριάζει ☕",t:"Έντονο, με δομή, αργό κάψιμο — το «ελληνικό Barolo». Αν αγαπάς espresso και μαύρη σοκολάτα, αυτό είναι το κόκκινό σου."},
+    sweet:{m:"Δοκίμασε Μοσχοφίλερο 🌸",t:"Αρωματικό, ανάλαφρο, με μια ιδέα γλύκας στη μύτη. Το πιο φιλικό πρώτο κρασί — μηδέν εκφοβισμός."},
+    fizz:{m:"Πήγαινε για ελληνικό αφρώδες 🥤",t:"Ναι, η Ελλάδα κάνει εξαιρετικές φυσαλίδες. Διασκεδαστικό, φρέσκο, λιγότερη δέσμευση απ' ό,τι νομίζεις."}
+  };
+  $$('#qopts .opt').forEach(o=>o.onclick=()=>{
+    $$('#qopts .opt').forEach(x=>x.classList.remove('sel'));
+    o.classList.add('sel');
+    const r=matches[o.dataset.r];
+    $('#rmatch').textContent=r.m; $('#rtext').textContent=r.t;
+    $('#qres').classList.remove('show'); void $('#qres').offsetWidth; $('#qres').classList.add('show');
+  });
+
+  // filter
+  $$('#filter .chip').forEach(c=>c.onclick=()=>{
+    $$('#filter .chip').forEach(x=>x.classList.remove('on')); c.classList.add('on');
+    const f=c.dataset.f; let shown=0;
+    $$('#explist .exp').forEach(e=>{
+      const ok = f==='all' || (e.dataset.tags||'').includes(f);
+      e.classList.toggle('hide',!ok); if(ok) shown++;
+    });
+    $('#empty').style.display = shown? 'none':'block';
+  });
+
+  // booking
+  function openSheet(title,sub,p){
+    price=p; ppl=2;
+    $('#shTitle').textContent=title; $('#shSub').textContent=sub;
+    $$('[data-group=ppl] .pick').forEach((x,i)=>x.classList.toggle('on',i===0));
+    recalc();
+    $('#sheetForm').style.display='block'; $('#shDone').classList.remove('show');
+    $('#sheetbg').classList.add('show');
+  }
+  function closeSheet(){$('#sheetbg').classList.remove('show');}
+  function pick(el){el.parentNode.querySelectorAll('.pick').forEach(p=>p.classList.remove('on'));el.classList.add('on');}
+  function recalc(){
+    const sel=$('[data-group=ppl] .pick.on'); ppl=parseInt(sel.dataset.n);
+    $('#shTotal').textContent='€'+(price*ppl);
+  }
+  function confirmBooking(){
+    const t=$('#shTitle').textContent;
+    $('#sheetForm').style.display='none';
+    $('#doneTxt').textContent='«'+t+'» κλείστηκε για '+ppl+' άτομα. Σφραγίδα στο passport! 🎉';
+    $('#shDone').classList.add('show');
+    stamps++; $('#stW').textContent=stamps;
+    toast('🍷 +1 σφραγίδα στο passport');
+  }
+
+  function updateProg(){ $('#pgbar').style.width='66%'; }
+  function toast(msg){
+    const t=$('#toast'); t.textContent=msg; t.classList.add('show');
+    clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),2200);
+  }
+</script>
+</body>
+</html>
